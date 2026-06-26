@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+*.egg
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# Claude local state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# spec runtime state
+.spec/
+output/
+
+# result
+x509-parser-result-fig/
+x509-parser-bench-splited/
+
+# x509 (kept locally, not tracked)
+x509-parser/
+x509-parser-bench/

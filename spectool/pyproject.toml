@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spectool"
+version = "0.1.0"
+description = "Deterministic JSON CLI toolbox for ACSL specification generation and Frama-C/WP verification"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+keywords = ["ACSL", "Frama-C", "formal verification", "C", "software analysis"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
+# Intentionally dependency-free: only the Python standard library is used.
+# Frama-C / veri-clang are external binaries provided by the user/container.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/leisure118/spectool"
+Repository = "https://github.com/leisure118/spectool"
+Issues = "https://github.com/leisure118/spectool/issues"
+Archive = "https://doi.org/TODO"
+
+[project.scripts]
+spectool = "CLI.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["CLI*"]
