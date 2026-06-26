@@ -2,40 +2,9 @@
 
 `spectool` 是一个用于 C 程序 ACSL 规约生成与 Frama-C/WP 验证的确定性命令行工具箱。它面向 LLM/人工辅助形式化规约生成场景，将容易出错但可机械化的工作固定为可重复执行的命令：函数抽取、项目切片、ACSL 注入、Frama-C/WP 调用、失败 goal 定位，以及 `//@ admit` 使用策略检查。
 
-本仓库用于准备 ISSTA/SPLASH 2026 Tool Demonstrations 中与 **tool availability / repository / archived version** 相关的材料：工具可公开访问、可安装、可打版本 tag、可归档复现。
+工具本身不调用 LLM，所有命令均可脚本化运行。它的设计目标是作为“确定性后端”：外层用户或 agent 生成、修改或修复 ACSL 注解，`spectool` 负责抽取上下文、注入注解、调用 Frama-C/WP、解析结果并返回结构化 JSON。
 
-- Repository: <https://github.com/leisure118/spectool>
-- Submitted version: `v0.1.0`
-- License: MIT
-- Archived artifact: TODO：Zenodo DOI 或等价归档 URL
-
-## 1. 工具定位
-
-ACSL 规约，尤其是函数契约、循环不变式和循环变体，能够为 C 程序提供强验证保证，但人工编写成本高。LLM 可以辅助提出候选规约，但候选规约必须经过确定性工具链检查，才能用于研究评估或工程实践。
-
-`spectool` 的目标是作为“确定性后端”：
-
-1. 外层用户或 agent 生成、修改或修复 ACSL 注解；
-2. `spectool` 负责抽取上下文、注入注解、调用 Frama-C/WP、解析结果并返回结构化 JSON；
-3. 外层流程根据 JSON 结果继续修复或记录实验结果。
-
-工具本身不调用 LLM，所有命令均可脚本化运行。
-
-## 2. Tool Availability 信息
-
-面向投稿/归档时，可使用以下信息：
-
-- **Latest version / repository:** <https://github.com/leisure118/spectool>
-- **Version submitted:** `v0.1.0`
-- **Archived artifact:** TODO：发布 release 后在 Zenodo 归档并填写 DOI。
-- **Documentation:** 本 README、`spectool/SKILL.md`、`spectool --help` 与各子命令 `--help`。
-- **Access:** MIT 开源协议。Python 包本身无第三方 Python 依赖；验证功能需要外部安装 Frama-C 和至少一个 prover，例如 Alt-Ergo 或 Z3。
-
-可直接放入 Tool Availability 段落的文本：
-
-> The latest version of spectool is available at https://github.com/leisure118/spectool. The submitted version is v0.1.0 and is archived at TODO-ARCHIVE-DOI. The repository includes installation instructions, command-line documentation, benchmark inputs, and deterministic JSON interfaces for extraction, ACSL injection, Frama-C/WP verification, failure localization, and admit-policy checking. spectool is released under the MIT License.
-
-## 3. 安装
+## 1. 安装
 
 推荐使用虚拟环境安装，避免受系统 Python 的 PEP 668 限制影响：
 
@@ -48,12 +17,6 @@ python -m pip install -e .
 spectool --help
 ```
 
-检查外部验证工具是否可用：
-
-```bash
-spectool doctor --proj ..
-```
-
 如果暂时不安装 package，也可以从仓库根目录直接运行：
 
 ```bash
@@ -61,7 +24,39 @@ PYTHONPATH=spectool python3 -m CLI --help
 PYTHONPATH=spectool python3 -m CLI doctor --proj .
 ```
 
-## 4. 版本验证
+## 2. 快速演示
+
+检查外部工具和项目目录：
+
+```bash
+spectool doctor --proj ..
+```
+
+列出或抽取 C 文件中的函数：
+
+```bash
+spectool extract --src ../dataset/autobench/1.c
+```
+
+对带 ACSL 注解的 C 文件运行 Frama-C/WP：
+
+```bash
+spectool verify -f input.acsl.c --timeout 8 --save-stdout wp.log
+```
+
+定位 WP 输出中的失败 goal：
+
+```bash
+spectool locate-fail --wp wp.log --src input.acsl.c
+```
+
+检查 `.acsl.c` 文件中是否存在违规 `//@ admit`：
+
+```bash
+spectool check-admit -f input.acsl.c
+```
+
+## 3. 版本验证
 
 确认 Python 包版本：
 
@@ -79,13 +74,12 @@ PY
 0.1.0
 ```
 
-版本号需要保持一致：
+版本号位于：
 
 - `spectool/pyproject.toml` 中的 `[project].version`
 - `spectool/CLI/__init__.py` 中的 `__version__`
-- Git release tag，例如 `v0.1.0`
 
-## 5. 命令行接口约定
+## 4. 命令行接口约定
 
 所有子命令遵循统一接口：
 
@@ -110,16 +104,14 @@ PY
 | `check-admit` | 检查 `.acsl.c` 中是否存在违规 `//@ admit`。 |
 | `init-contracts` / `fill-contracts` / `save-contract` | 维护自底向上的函数契约状态。 |
 
-示例：
+查看完整帮助：
 
 ```bash
-spectool extract --src ../dataset/autobench/1.c
-spectool verify -f input.acsl.c --timeout 8 --save-stdout wp.log
-spectool locate-fail --wp wp.log --src input.acsl.c
-spectool check-admit -f input.acsl.c
+spectool --help
+spectool <command> --help
 ```
 
-## 6. 外部依赖
+## 5. 外部依赖
 
 Python package 本身只使用标准库。以下工具为外部依赖：
 
@@ -129,12 +121,12 @@ Python package 本身只使用标准库。以下工具为外部依赖：
 
 `doctor` 会报告外部工具是否存在。缺失 Frama-C/prover 时，仍可使用抽取、注入、admit 检查等不依赖验证器的命令。
 
-## 7. 仓库结构
+## 6. 仓库结构
 
 ```text
 .
 ├── LICENSE                  # MIT License
-├── README.md                # 仓库、安装、版本和归档说明
+├── README.md                # 安装、演示和使用说明
 ├── .claude/skills/          # 规约生成/编排 skill 描述
 ├── dataset/                 # AutoBench、live24、live25 C benchmark
 ├── scripts/                 # 辅助脚本
@@ -146,39 +138,31 @@ Python package 本身只使用标准库。以下工具为外部依赖：
     └── pyproject.toml       # Python 包元数据与 console script
 ```
 
-## 8. 发布与归档流程
+## 7. 开发说明
 
-本仓库准备作为 `v0.1.0` artifact release。发布流程如下：
+安装后，命令入口由 `spectool/pyproject.toml` 中的 console script 提供：
 
-1. 确认安装测试通过：
-   ```bash
-   cd spectool
-   python3 -m venv /tmp/spectool-test-venv
-   . /tmp/spectool-test-venv/bin/activate
-   python -m pip install -e .
-   spectool --help
-   spectool doctor --proj ..
-   ```
-2. 提交仓库：
-   ```bash
-   git add .
-   git commit -m "Prepare spectool v0.1.0 artifact release"
-   ```
-3. 创建并推送 tag：
-   ```bash
-   git tag -a v0.1.0 -m "spectool v0.1.0 submitted artifact"
-   git push origin main
-   git push origin v0.1.0
-   ```
-4. 在 GitHub 上基于 `v0.1.0` 创建 release。
-5. 将 release 归档到 Zenodo，获得 DOI。
-6. 将 DOI 写回：
-   - 本 README 的 `Archived artifact` 和 `TODO-ARCHIVE-DOI`；
-   - `spectool/pyproject.toml` 的 `Archive` URL。
-7. 重新提交 DOI 更新，可选择打 `v0.1.0-artifact` 或保留 DOI 更新在主分支说明中。
+```toml
+[project.scripts]
+spectool = "CLI.cli:main"
+```
 
-## 9. 注意事项
+这里的 `CLI.cli:main` 对应实际源码路径：
 
-- 当前仓库重点维护可公开仓库、可安装版本和归档信息；论文正文和视频录制材料不在本仓库中处理。
-- 如果复现实验需要完整 Frama-C/WP 验证，应在 release notes 中记录 Frama-C、prover 和操作系统版本。
-- `.gitignore` 已排除 `.spec/`、`output/` 等运行生成目录，归档时应确认不误删必要 benchmark 输入。
+```text
+spectool/CLI/cli.py
+```
+
+如果将来把源码重构成标准小写包，例如：
+
+```text
+spectool/spectool/cli.py
+```
+
+才应把入口改成：
+
+```toml
+spectool = "spectool.cli:main"
+```
+
+在当前源码结构下，不应改成 `spectool.cli:main`，否则安装后的 `spectool` 命令会找不到模块。

@@ -20,12 +20,6 @@ classifiers = [
 # Frama-C / veri-clang are external binaries provided by the user/container.
 dependencies = []
 
-[project.urls]
-Homepage = "https://github.com/leisure118/spectool"
-Repository = "https://github.com/leisure118/spectool"
-Issues = "https://github.com/leisure118/spectool/issues"
-Archive = "https://doi.org/TODO"
-
 [project.scripts]
 spectool = "CLI.cli:main"
 
