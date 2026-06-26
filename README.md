@@ -4,11 +4,6 @@
 
 工具本身不调用 LLM，所有命令均可脚本化运行。它的设计目标是作为“确定性后端”：外层用户或 agent 生成、修改或修复 ACSL 注解，`spectool` 负责抽取上下文、注入注解、调用 Frama-C/WP、解析结果并返回结构化 JSON。
 
-## Release
-
-- Current release: [`v0.1.0`](https://github.com/leisure118/spectool/releases/tag/v0.1.0)
-- Archived version: <https://doi.org/10.5281/zenodo.20921708>
-
 ## 1. 安装
 
 推荐使用虚拟环境安装，避免受系统 Python 的 PEP 668 限制影响：
@@ -142,32 +137,3 @@ Python package 本身只使用标准库。以下工具为外部依赖：
     ├── SKILL.md             # 工具能力清单
     └── pyproject.toml       # Python 包元数据与 console script
 ```
-
-## 7. 开发说明
-
-安装后，命令入口由 `spectool/pyproject.toml` 中的 console script 提供：
-
-```toml
-[project.scripts]
-spectool = "CLI.cli:main"
-```
-
-这里的 `CLI.cli:main` 对应实际源码路径：
-
-```text
-spectool/CLI/cli.py
-```
-
-如果将来把源码重构成标准小写包，例如：
-
-```text
-spectool/spectool/cli.py
-```
-
-才应把入口改成：
-
-```toml
-spectool = "spectool.cli:main"
-```
-
-在当前源码结构下，不应改成 `spectool.cli:main`，否则安装后的 `spectool` 命令会找不到模块。
