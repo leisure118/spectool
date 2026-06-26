@@ -1,12 +1,12 @@
 # spectool
 
-`spectool` 是一个用于 C 程序 ACSL 规约生成与 Frama-C/WP 验证的确定性命令行工具箱。它面向 LLM/人工辅助形式化规约生成场景，将容易出错但可机械化的工作固定为可重复执行的命令：函数抽取、项目切片、ACSL 注入、Frama-C/WP 调用、失败 goal 定位，以及 `//@ admit` 使用策略检查。
+`spectool` is a deterministic command-line toolbox for ACSL specification generation and Frama-C/WP verification for C programs. It is designed for LLM-assisted or human-assisted formal specification workflows, where mechanically repeatable tasks should be handled by reliable commands: function extraction, project slicing, ACSL injection, Frama-C/WP execution, failed-goal localization, and policy checks for `//@ admit` usage.
 
-工具本身不调用 LLM，所有命令均可脚本化运行。它的设计目标是作为“确定性后端”：外层用户或 agent 生成、修改或修复 ACSL 注解，`spectool` 负责抽取上下文、注入注解、调用 Frama-C/WP、解析结果并返回结构化 JSON。
+`spectool` does not call an LLM. All commands are scriptable. The intended role of the tool is to act as a deterministic backend: a user or external agent writes, modifies, or repairs ACSL annotations, while `spectool` extracts context, injects annotations, invokes Frama-C/WP, parses results, and returns structured JSON.
 
-## 1. 安装
+## 1. Installation
 
-推荐使用虚拟环境安装，避免受系统 Python 的 PEP 668 限制影响：
+Using a virtual environment is recommended to avoid system Python restrictions such as PEP 668:
 
 ```bash
 git clone https://github.com/leisure118/spectool.git
@@ -17,48 +17,48 @@ python -m pip install -e .
 spectool --help
 ```
 
-如果暂时不安装 package，也可以从仓库根目录直接运行：
+If you do not want to install the package, you can also run it directly from the repository root:
 
 ```bash
 PYTHONPATH=spectool python3 -m CLI --help
 PYTHONPATH=spectool python3 -m CLI doctor --proj .
 ```
 
-## 2. 快速演示
+## 2. Quick Demo
 
-检查外部工具和项目目录：
+Check external tools and the project directory:
 
 ```bash
 spectool doctor --proj ..
 ```
 
-列出或抽取 C 文件中的函数：
+List or extract functions from a C file:
 
 ```bash
 spectool extract --src ../dataset/autobench/1.c
 ```
 
-对带 ACSL 注解的 C 文件运行 Frama-C/WP：
+Run Frama-C/WP on a C file with ACSL annotations:
 
 ```bash
 spectool verify -f input.acsl.c --timeout 8 --save-stdout wp.log
 ```
 
-定位 WP 输出中的失败 goal：
+Locate failed goals from WP output:
 
 ```bash
 spectool locate-fail --wp wp.log --src input.acsl.c
 ```
 
-检查 `.acsl.c` 文件中是否存在违规 `//@ admit`：
+Check whether an `.acsl.c` file contains invalid `//@ admit` usage:
 
 ```bash
 spectool check-admit -f input.acsl.c
 ```
 
-## 3. 版本验证
+## 3. Version Check
 
-确认 Python 包版本：
+Check the installed Python package version:
 
 ```bash
 cd spectool
@@ -68,72 +68,72 @@ print(CLI.__version__)
 PY
 ```
 
-当前应输出：
+The expected output is:
 
 ```text
 0.1.0
 ```
 
-版本号位于：
+The version is defined in:
 
-- `spectool/pyproject.toml` 中的 `[project].version`
-- `spectool/CLI/__init__.py` 中的 `__version__`
+- `[project].version` in `spectool/pyproject.toml`
+- `__version__` in `spectool/CLI/__init__.py`
 
-## 4. 命令行接口约定
+## 4. Command-Line Interface Contract
 
-所有子命令遵循统一接口：
+All subcommands follow the same interface convention:
 
-- stdout：只输出 JSON，便于脚本、agent、CI 解析；
-- stderr：输出人类可读日志；
-- exit code：
-  - `0`：成功；
-  - `2`：外部工具缺失或不可用；
-  - `3`：输入错误；
-  - `1`：未预期内部错误。
+- stdout: JSON only, suitable for scripts, agents, and CI;
+- stderr: human-readable logs;
+- exit code:
+  - `0`: success;
+  - `2`: external tool missing or unusable;
+  - `3`: invalid input;
+  - `1`: unexpected internal error.
 
-主要命令如下：
+Main commands:
 
-| 命令 | 作用 |
+| Command | Purpose |
 |---|---|
-| `doctor` | 检查 Frama-C、veri-clang、prover 和项目目录可用性。 |
-| `extract` | 列出 C 文件中的函数或抽取单个函数。 |
-| `slice` | 为目标函数生成最小切片。 |
-| `inject` | 将 ACSL 函数契约和循环注解注入 C 文件。 |
-| `verify` | 调用 Frama-C/WP 并返回 `{result, proved, total}`。 |
-| `locate-fail` | 解析 WP 输出并定位失败 goal。 |
-| `check-admit` | 检查 `.acsl.c` 中是否存在违规 `//@ admit`。 |
-| `init-contracts` / `fill-contracts` / `save-contract` | 维护自底向上的函数契约状态。 |
+| `doctor` | Check Frama-C, veri-clang, provers, and project directory availability. |
+| `extract` | List functions in a C file or extract one function. |
+| `slice` | Generate a minimal slice for a target function. |
+| `inject` | Inject ACSL function contracts and loop annotations into a C file. |
+| `verify` | Invoke Frama-C/WP and return `{result, proved, total}`. |
+| `locate-fail` | Parse WP output and locate failed goals. |
+| `check-admit` | Check whether `.acsl.c` files contain invalid `//@ admit` usage. |
+| `init-contracts` / `fill-contracts` / `save-contract` | Maintain bottom-up function contract state. |
 
-查看完整帮助：
+View the full command help:
 
 ```bash
 spectool --help
 spectool <command> --help
 ```
 
-## 5. 外部依赖
+## 5. External Dependencies
 
-Python package 本身只使用标准库。以下工具为外部依赖：
+The Python package itself only uses the standard library. The following tools are external dependencies:
 
-- Frama-C：`verify` 的核心后端；
-- Alt-Ergo 或 Z3：Frama-C/WP 使用的 prover；
-- veri-clang：用于部分 repo-scale 分析场景，非所有命令必需。
+- Frama-C: the main backend for `verify`;
+- Alt-Ergo or Z3: provers used by Frama-C/WP;
+- veri-clang: used for some repo-scale analysis scenarios, but not required by every command.
 
-`doctor` 会报告外部工具是否存在。缺失 Frama-C/prover 时，仍可使用抽取、注入、admit 检查等不依赖验证器的命令。
+`doctor` reports whether external tools are available. If Frama-C or a prover is missing, commands that do not require verification, such as extraction, injection, and admit checking, can still be used.
 
-## 6. 仓库结构
+## 6. Repository Layout
 
 ```text
 .
 ├── LICENSE                  # MIT License
-├── README.md                # 安装、演示和使用说明
-├── .claude/skills/          # 规约生成/编排 skill 描述
-├── dataset/                 # AutoBench、live24、live25 C benchmark
-├── scripts/                 # 辅助脚本
+├── README.md                # Installation, demo, and usage guide
+├── .claude/skills/          # Skill descriptions for specification workflows
+├── dataset/                 # AutoBench, live24, and live25 C benchmarks
+├── scripts/                 # Helper scripts
 └── spectool/
-    ├── CLI/                 # Python CLI 包
-    │   ├── commands/        # 一命令一文件
-    │   └── vendored/        # 抽取、注入、Frama-C 输出解析等核心实现
-    ├── SKILL.md             # 工具能力清单
-    └── pyproject.toml       # Python 包元数据与 console script
+    ├── CLI/                 # Python CLI package
+    │   ├── commands/        # One command per file
+    │   └── vendored/        # Core extraction, injection, and WP-output parsing logic
+    ├── SKILL.md             # Tool capability summary
+    └── pyproject.toml       # Python package metadata and console script
 ```
