@@ -4,6 +4,11 @@
 
 工具本身不调用 LLM，所有命令均可脚本化运行。它的设计目标是作为“确定性后端”：外层用户或 agent 生成、修改或修复 ACSL 注解，`spectool` 负责抽取上下文、注入注解、调用 Frama-C/WP、解析结果并返回结构化 JSON。
 
+## Release
+
+- Current release: [`v0.1.0`](https://github.com/leisure118/spectool/releases/tag/v0.1.0)
+- Archived version: <https://doi.org/10.5281/zenodo.20921708>
+
 ## 1. 安装
 
 推荐使用虚拟环境安装，避免受系统 Python 的 PEP 668 限制影响：
